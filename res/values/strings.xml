@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="app_name">SlidingDrawer Demo</string>
+    <string name="action_settings">Settings</string>
+    <string name="content_prompt">\@id/content</string>
+    <string name="handle_prompt">\@id/handle</string>
+
+</resources>
