@@ -10,7 +10,7 @@
     <dimen name="sliding_drawer_outter_width">512dp</dimen>
     <dimen name="handle_width">64dp</dimen>
     <dimen name="handle_height">256dp</dimen>
-    <dimen name="top_offset">64dp</dimen>
-    <dimen name="bottom_offset">60dp</dimen>
+    <dimen name="expanded_offset">64dp</dimen>
+    <dimen name="collapsed_offset">60dp</dimen>
 
 </resources>

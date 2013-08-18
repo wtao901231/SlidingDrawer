@@ -1,12 +1,5 @@
-package me.wtao.widget;
-
-/**
- * Copyright (C) 2013 wtao.me
- * 
- * @author tagorewang <wtao901231@gmail.com>
- * @date 7/21/2013 modified
- * 
- * Copyright (C) 2007 The Android Open Source Project
+/*
+ * Copyright (C) 2008 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,6 +14,9 @@ package me.wtao.widget;
  * limitations under the License.
  */
 
+package me.wtao.widget;
+
+import me.wtao.utils.Logcat;
 import android.content.Context;
 import android.content.res.TypedArray;
 import android.graphics.Bitmap;
@@ -30,7 +26,6 @@ import android.os.Handler;
 import android.os.Message;
 import android.os.SystemClock;
 import android.util.AttributeSet;
-import android.view.GestureDetector;
 import android.view.MotionEvent;
 import android.view.SoundEffectConstants;
 import android.view.VelocityTracker;
@@ -52,84 +47,56 @@ import android.view.accessibility.AccessibilityEvent;
  * content will occupy once slid out so SlidingDrawer should usually use
  * match_parent for both its dimensions.<br>
  * 
- * Inside an XML layout, SlidingDrawer must define the id of the handle (f.e.
- * @+id/handle) and of the content (f.e. @+id/content).
+ * Inside an XML layout, SlidingDrawer must define the id of the handle and of
+ * the content:<br>
  * 
- * @see R.styleable#SlidingDrawer_content
- * @see R.styleable#SlidingDrawer_handle
- * @see R.styleable#SlidingDrawer_orientation
- * @see R.styleable#SlidingDrawer_allowSingleTap
- * @see R.styleable#SlidingDrawer_animateOnClick
+ * <pre class="prettyprint">
+ * &lt;SlidingDrawer
+ *     android:id="@+id/drawer"
+ *     android:layout_width="match_parent"
+ *     android:layout_height="match_parent"
+ * 
+ *     android:handle="@+id/handle"
+ *     android:content="@+id/content"&gt;
+ * 
+ *     &lt;ImageView
+ *         android:id="@id/handle"
+ *         android:layout_width="88dip"
+ *         android:layout_height="44dip" /&gt;
+ * 
+ *     &lt;GridView
+ *         android:id="@id/content"
+ *         android:layout_width="match_parent"
+ *         android:layout_height="match_parent" /&gt;
+ * 
+ * &lt;/SlidingDrawer&gt;
+ * </pre>
+ * 
+ * @see R.styleable#SlidingDrawer_content<br>
+ * @see R.styleable#SlidingDrawer_handle<br>
+ * @see R.styleable#SlidingDrawer_topOffset<br>
+ * @see R.styleable#SlidingDrawer_bottomOffset<br>
+ * @see R.styleable#SlidingDrawer_orientation<br>
+ * @see R.styleable#SlidingDrawer_allowSingleTap<br>
+ * @see R.styleable#SlidingDrawer_animateOnClick<br>
  * 
  */
+
 public class SlidingDrawer extends ViewGroup {
-	/**
-	 * Drawing from top down is not very friendly with system title notification
-	 * bar, so it has not been implemented yet. Design retains for the needs in
-	 * the future.
-	 */
 	public static final int ORIENTATION_TOP_DOWN = 0x01;
 	public static final int ORIENTATION_BOTTOM_UP = 0x02;
 	public static final int ORIENTATION_LEFT_TO_RIGHT = 0x04;
 	public static final int ORIENTATION_RIGHT_TO_LEFT = 0x08;
 
-	/**
-	 * when moving at the end of {@link SlidingDrawer}, weather
-	 * {@link #EXPANDED_FULL_OPEN} or {@link #COLLAPSED_FULL_CLOSED}, if the
-	 * offset is less than the TAP_THRESHOLD ({@value #TAP_THRESHOLD} dp), the
-	 * moving will be treat as a single tap.
-	 * 
-	 * @see #isSingleTap()
-	 */
-	private static final int TAP_THRESHOLD = 6;
-	/**
-	 * max velocity ({@value #MAXIMUM_TAP_VELOCITY}) of tap, as a comparative
-	 * critical point in {@link #performFling(int, float, boolean)}<br>
-	 * Velocity unit is one pixel per second.
-	 * 
-	 * @see #VELOCITY_UNITS
-	 */
-	private static final float MAXIMUM_TAP_VELOCITY = 100.0f;
-	/**
-	 * max value ({@value #MAXIMUM_MINOR_VELOCITY} px/s) of secondary subvector.
-	 * in the horizontal direction it's subvector Y, while in the vertical
-	 * direction subvector X.<br>
-	 * Velocity unit is one pixel per second.
-	 * 
-	 * @see #VELOCITY_UNITS
-	 */
-	private static final float MAXIMUM_MINOR_VELOCITY = 150.0f;
-	/**
-	 * max value ({@value #MAXIMUM_MAJOR_VELOCITY} px/s) of main subvector. in
-	 * the horizontal direction it's subvector X, while in the vertical
-	 * direction subvector Y.<br>
-	 * Velocity unit is one pixel per second.
-	 * 
-	 * @see #VELOCITY_UNITS
-	 */
-	private static final float MAXIMUM_MAJOR_VELOCITY = 200.0f;
-	/**
-	 * max value ({@value #MAXIMUM_ACCELERATION} px/s/s) of acceleration.
-	 * Acceleration unit is one pixel per square second.
-	 * 
-	 * @see #VELOCITY_UNITS
-	 */
-	private static final float MAXIMUM_ACCELERATION = 2000.0f;
-	/**
-	 * The units you would like the velocity in. A value of 1 provides pixels
-	 * per millisecond, 1000 provides pixels per second, etc.<br>
-	 * We set VELOCITY_UNITS as {@value #VELOCITY_UNITS}, that is one pixel per
-	 * second.
-	 * 
-	 * @see #incrementAnimation()
-	 * @see android.view.VelocityTracker#computeCurrentVelocity(int, float)
-	 */
-	private static final int VELOCITY_UNITS = 1000;
+	private static final Logcat sLogcat = new Logcat();
 
+	private static final int TAP_THRESHOLD = 6;
+	private static final float MAXIMUM_TAP_VELOCITY = 100.0f;
+	private static final float MAXIMUM_MINOR_VELOCITY = 150.0f;
+	private static final float MAXIMUM_MAJOR_VELOCITY = 200.0f;
+	private static final float MAXIMUM_ACCELERATION = 2000.0f;
+	private static final int VELOCITY_UNITS = 1000;
 	private static final int MSG_ANIMATE = 1000;
-	/**
-	 * animation update rate is {@value #ANIMATION_FRAME_DURATION} fps
-	 */
 	private static final int ANIMATION_FRAME_DURATION = 1000 / 60;
 
 	private static final int EXPANDED_FULL_OPEN = -10001;
@@ -144,34 +111,22 @@ public class SlidingDrawer extends ViewGroup {
 	private final Rect mFrame = new Rect();
 	private final Rect mInvalidate = new Rect();
 	private boolean mTracking;
-
-	private boolean mLocked = false;
-	private boolean mContentLocked = false;
-
-	private int mPadding = 0; // TODO: l, t, r, b
+	private boolean mLocked;
 
 	private VelocityTracker mVelocityTracker;
 
-	/**
-	 * sliding drawer orientation, witch can be
-	 * {@link #ORIENTATION_LEFT_TO_RIGHT}, {@link #ORIENTATION_RIGHT_TO_LEFT}
-	 * and {@link #ORIENTATION_BOTTOM_UP}, {@link #ORIENTATION_TOP_DOWN} is
-	 * ignored but retain for design.
-	 * 
-	 * @see #checkOrientation
-	 */
-	private int mOrientation;
 	private boolean mVertical;
 	private boolean mExpanded;
-
+	private int mCollapsedOffset;
+	private int mExpandedOffset;
 	private int mHandleHeight;
 	private int mHandleWidth;
+
+	private int mOrientation;
 
 	private OnDrawerOpenListener mOnDrawerOpenListener;
 	private OnDrawerCloseListener mOnDrawerCloseListener;
 	private OnDrawerScrollListener mOnDrawerScrollListener;
-
-	private GestureDetector mCollapseGestureDetector;
 
 	private final Handler mHandler = new SlidingHandler();
 	private float mAnimatedAcceleration;
@@ -184,55 +139,17 @@ public class SlidingDrawer extends ViewGroup {
 	private boolean mAllowSingleTap;
 	private boolean mAnimateOnClick;
 
-	/**
-	 * ceiling of {@link android.util.DisplayMetrics.density} *
-	 * {@link #TAP_THRESHOLD}
-	 * 
-	 * @see #SlidingDrawer(Context, AttributeSet, int)
-	 */
 	private final int mTapThreshold;
-	/**
-	 * ceiling of {@link android.util.DisplayMetrics.density} *
-	 * {@link #MAXIMUM_TAP_VELOCITY}
-	 * 
-	 * @see #SlidingDrawer(Context, AttributeSet, int)
-	 */
 	private final int mMaximumTapVelocity;
-	/**
-	 * ceiling of {@link android.util.DisplayMetrics.density} *
-	 * {@link #MAXIMUM_MINOR_VELOCITY}
-	 * 
-	 * @see #SlidingDrawer(Context, AttributeSet, int)
-	 */
 	private final int mMaximumMinorVelocity;
-	/**
-	 * ceiling of {@link android.util.DisplayMetrics.density} *
-	 * {@link #MAXIMUM_MAJOR_VELOCITY}
-	 * 
-	 * @see #SlidingDrawer(Context, AttributeSet, int)
-	 */
 	private final int mMaximumMajorVelocity;
-	/**
-	 * ceiling of {@link android.util.DisplayMetrics.density} *
-	 * {@link #MAXIMUM_ACCELERATION}
-	 * 
-	 * @see #SlidingDrawer(Context, AttributeSet, int)
-	 */
 	private final int mMaximumAcceleration;
-	/**
-	 * ceiling of {@link android.util.DisplayMetrics.density} *
-	 * {@link #VELOCITY_UNITS}
-	 * 
-	 * @see #SlidingDrawer(Context, AttributeSet, int)
-	 */
 	private final int mVelocityUnits;
 
 	/**
 	 * Callback invoked when the drawer is opened.
 	 */
-	public static interface OnDrawerOpenListener {		
-		public void onDrawerWillOpen();
-
+	public static interface OnDrawerOpenListener {
 		/**
 		 * Invoked when the drawer becomes fully open.
 		 */
@@ -253,14 +170,10 @@ public class SlidingDrawer extends ViewGroup {
 	 * Callback invoked when the drawer is scrolled.
 	 */
 	public static interface OnDrawerScrollListener {
-		public void onPreScrollStarted();
-
 		/**
 		 * Invoked when the user starts dragging/flinging the drawer's handle.
 		 */
 		public void onScrollStarted();
-
-		public void onScroll(boolean willBackward);
 
 		/**
 		 * Invoked when the user stops dragging/flinging the drawer's handle.
@@ -294,6 +207,7 @@ public class SlidingDrawer extends ViewGroup {
 	 */
 	public SlidingDrawer(Context context, AttributeSet attrs, int defStyle) {
 		super(context, attrs, defStyle);
+
 		TypedArray a = context.obtainStyledAttributes(attrs,
 				R.styleable.SlidingDrawer, defStyle, 0);
 
@@ -301,6 +215,20 @@ public class SlidingDrawer extends ViewGroup {
 				ORIENTATION_LEFT_TO_RIGHT);
 		checkOrientation();
 		mVertical = (mOrientation == ORIENTATION_TOP_DOWN || mOrientation == ORIENTATION_BOTTOM_UP);
+
+		mCollapsedOffset = (int) a.getDimension(
+				R.styleable.SlidingDrawer_collapsedOffset, 0.0f);
+		if (mCollapsedOffset < 0) {
+			throw new IllegalArgumentException(
+					"The collapsedOffset attribute should not be negative.");
+		}
+
+		mExpandedOffset = (int) a.getDimension(
+				R.styleable.SlidingDrawer_expandedOffset, 0.0f);
+		if (mExpandedOffset < 0) {
+			throw new IllegalArgumentException(
+					"The expandedOffset attribute should not be negative.");
+		}
 
 		mAllowSingleTap = a.getBoolean(
 				R.styleable.SlidingDrawer_allowSingleTap, false);
@@ -342,113 +270,7 @@ public class SlidingDrawer extends ViewGroup {
 
 		setAlwaysDrawnWithCacheEnabled(false);
 
-		mCollapseGestureDetector = new GestureDetector(context,
-				new CollapseGestureDetector());
-	}
-
-	/**
-	 * Sets the listener that receives a notification when the drawer becomes
-	 * open.
-	 * 
-	 * @param onDrawerOpenListener
-	 *            The listener to be notified when the drawer is opened.
-	 */
-	public void setOnDrawerOpenListener(
-			OnDrawerOpenListener onDrawerOpenListener) {
-		mOnDrawerOpenListener = onDrawerOpenListener;
-	}
-
-	/**
-	 * Sets the listener that receives a notification when the drawer becomes
-	 * close.
-	 * 
-	 * @param onDrawerCloseListener
-	 *            The listener to be notified when the drawer is closed.
-	 */
-	public void setOnDrawerCloseListener(
-			OnDrawerCloseListener onDrawerCloseListener) {
-		mOnDrawerCloseListener = onDrawerCloseListener;
-	}
-
-	/**
-	 * Sets the listener that receives a notification when the drawer starts or
-	 * ends a scroll. A fling is considered as a scroll. A fling will also
-	 * trigger a drawer opened or drawer closed event.
-	 * 
-	 * @param onDrawerScrollListener
-	 *            The listener to be notified when scrolling starts or stops.
-	 */
-	public void setOnDrawerScrollListener(
-			OnDrawerScrollListener onDrawerScrollListener) {
-		mOnDrawerScrollListener = onDrawerScrollListener;
-	}
-
-	public final int getOrientation() {
-		return mOrientation;
-	}
-
-	/**
-	 * Returns the handle of the drawer.
-	 * 
-	 * @return The View reprenseting the handle of the drawer, identified by the
-	 *         "handle" id in XML.
-	 */
-	public View getHandle() {
-		return mHandle;
-	}
-
-	/**
-	 * Returns the content of the drawer.
-	 * 
-	 * @return The View reprenseting the content of the drawer, identified by
-	 *         the "content" id in XML.
-	 */
-	public View getContent() {
-		return mContent;
-	}
-
-	/**
-	 * Unlocks the SlidingDrawer so that touch events are processed.
-	 * 
-	 * @see #lock()
-	 */
-	public void unlock() {
-		mLocked = false;
-	}
-
-	/**
-	 * Locks the SlidingDrawer so that touch events are ignores.
-	 * 
-	 * @see #unlock()
-	 */
-	public void lock() {
-		mLocked = true;
-	}
-
-	public void lockContent() {
-		mContentLocked = true;
-	}
-
-	public void unlockContent() {
-		mContentLocked = false;
-	}
-
-	/**
-	 * Indicates whether the drawer is currently fully opened.
-	 * 
-	 * @return True if the drawer is opened, false otherwise.
-	 */
-	public boolean isOpened() {
-		return mExpanded;
-	}
-
-	/**
-	 * Indicates whether the drawer is scrolling or flinging.
-	 * 
-	 * @return True if the drawer is scroller or flinging, false otherwise.
-	 */
-	public boolean isMoving() {
-		return mTracking || mAnimating;
+		sLogcat.setOn(); // TODO log switch
 	}
 
 	@Override
@@ -490,17 +312,14 @@ public class SlidingDrawer extends ViewGroup {
 		measureChild(handle, widthMeasureSpec, heightMeasureSpec);
 
 		if (isVertical()) {
-			int height = heightSpecSize - handle.getMeasuredHeight();
+			int height = heightSpecSize - handle.getMeasuredHeight()
+					- mExpandedOffset;
 			mContent.measure(MeasureSpec.makeMeasureSpec(widthSpecSize,
 					MeasureSpec.EXACTLY), MeasureSpec.makeMeasureSpec(height,
 					MeasureSpec.EXACTLY));
 		} else {
-			// int width = widthSpecSize - handle.getMeasuredWidth();
-			// mContent.measure(MeasureSpec.makeMeasureSpec(width,
-			// MeasureSpec.EXACTLY), MeasureSpec.makeMeasureSpec(
-			// heightSpecSize, MeasureSpec.EXACTLY));
-
-			int width = widthSpecSize;
+			int width = widthSpecSize - handle.getMeasuredWidth()
+					- mExpandedOffset;
 			mContent.measure(MeasureSpec.makeMeasureSpec(width,
 					MeasureSpec.EXACTLY), MeasureSpec.makeMeasureSpec(
 					heightSpecSize, MeasureSpec.EXACTLY));
@@ -511,28 +330,45 @@ public class SlidingDrawer extends ViewGroup {
 
 	@Override
 	protected void dispatchDraw(Canvas canvas) {
+		sLogcat.v("entry");
+
 		final long drawingTime = getDrawingTime();
 		final View handle = mHandle;
 
+		sLogcat.d("handle visible ? ", mHandle.getVisibility() == View.VISIBLE);
+
+		if (mHandle.getVisibility() == View.VISIBLE) {
+			drawChild(canvas, handle, drawingTime);
+		}
+
+		sLogcat.d("tracking ? ", mTracking, ", animatin ? ", mAnimating,
+				", expanded ? ", mExpanded);
+
 		if (mTracking || mAnimating) {
 			final Bitmap cache = mContent.getDrawingCache();
+
+			sLogcat.d("cache ? ", (cache != null));
+
 			if (cache != null) {
 				switch (mOrientation) {
-				case ORIENTATION_BOTTOM_UP: {
+				case ORIENTATION_TOP_DOWN:
+					canvas.drawBitmap(cache, 0, -mContent.getMeasuredHeight()
+							+ handle.getTop(), null);
+					break;
+
+				case ORIENTATION_BOTTOM_UP:
 					canvas.drawBitmap(cache, 0, handle.getBottom(), null);
 					break;
-				}
-				case ORIENTATION_LEFT_TO_RIGHT: {
-					// canvas.drawBitmap(cache, -mContent.getMeasuredWidth()
-					// + handle.getLeft(), 0, null);
+
+				case ORIENTATION_LEFT_TO_RIGHT:
 					canvas.drawBitmap(cache, -mContent.getMeasuredWidth()
-							+ handle.getRight(), 0, null);
+							+ handle.getLeft(), 0, null);
 					break;
-				}
-				case ORIENTATION_RIGHT_TO_LEFT: {
+
+				case ORIENTATION_RIGHT_TO_LEFT:
 					canvas.drawBitmap(cache, handle.getRight(), 0, null);
 					break;
-				}
+
 				}
 			} else {
 				canvas.save();
@@ -541,22 +377,26 @@ public class SlidingDrawer extends ViewGroup {
 				// that is, prepare for drawing in {(x0+dx, y0+dy) ->
 				// (x0+dx+w, y0+dy+h)} matix, where w and h may be dynamic
 				switch (mOrientation) {
-				case ORIENTATION_BOTTOM_UP: {
-					// TODO: see the other if-branch for comparison O_o?
-					canvas.translate(0, handle.getTop());
+				case ORIENTATION_TOP_DOWN:
+					canvas.translate(0,
+							-mContent.getMeasuredHeight() + handle.getTop());
 					break;
-				}
-				case ORIENTATION_LEFT_TO_RIGHT: {
+
+				case ORIENTATION_BOTTOM_UP:
+					canvas.translate(0, handle.getTop() - mExpandedOffset);
+					break;
+
+				case ORIENTATION_LEFT_TO_RIGHT:
 					canvas.translate(
 							-mContent.getMeasuredWidth() + handle.getRight(), 0);
 					break;
-				}
-				case ORIENTATION_RIGHT_TO_LEFT: {
-					// TODO: see the other if-branch for comparison O_o?
-					canvas.translate(handle.getLeft(), 0);
+
+				case ORIENTATION_RIGHT_TO_LEFT:
+					canvas.translate(handle.getLeft() - mExpandedOffset, 0);
 					break;
+
 				}
-				}
+
 				drawChild(canvas, mContent, drawingTime);
 
 				canvas.restore();
@@ -564,29 +404,24 @@ public class SlidingDrawer extends ViewGroup {
 		} else if (mExpanded) {
 			drawChild(canvas, mContent, drawingTime);
 		}
-		drawChild(canvas, handle, drawingTime);
-		// overlap handle on the content
-		// if (mHandle.getVisibility() == View.VISIBLE) {
-		// drawChild(canvas, handle, drawingTime);
-		// }
+
+		sLogcat.v("exit: didDispatchDraw");
 	}
 
 	@Override
 	protected void onLayout(boolean changed, int l, int t, int r, int b) {
+		sLogcat.v("entry");
+
 		if (mTracking) {
+			sLogcat.v("exit: tracking ? ", mTracking);
 			return;
 		}
 
-		int width = r - l;
-		int height = b - t;
-
-		if (isHorizontal()) {
-			width -= mPadding;
-		}
+		final int width = r - l;
+		final int height = b - t;
 
 		final View handle = mHandle;
 
-		// child is handle, content is auto adjusted
 		int childWidth = handle.getMeasuredWidth();
 		int childHeight = handle.getMeasuredHeight();
 
@@ -596,84 +431,83 @@ public class SlidingDrawer extends ViewGroup {
 		final View content = mContent;
 
 		switch (mOrientation) {
-		case ORIENTATION_BOTTOM_UP: {
+		case ORIENTATION_TOP_DOWN:
 			childLeft = (width - childWidth) / 2;
-			childTop = mExpanded ? 0 : height - childHeight;
+			childTop = mExpanded ? mExpandedOffset : height - childHeight
+					+ mCollapsedOffset;
 
-			content.layout(0, childHeight, content.getMeasuredWidth(),
-					childHeight + content.getMeasuredHeight());
+			content.layout(0, 0, content.getMeasuredWidth(),
+					content.getMeasuredHeight());
 			break;
-		}
-		case ORIENTATION_LEFT_TO_RIGHT: {
-			childLeft = mExpanded ? width - childWidth : 0;
+
+		case ORIENTATION_BOTTOM_UP:
+			childLeft = (width - childWidth) / 2;
+			childTop = mExpanded ? mExpandedOffset : height - childHeight
+					+ mCollapsedOffset;
+
+			content.layout(0, mExpandedOffset + childHeight,
+					content.getMeasuredWidth(), mExpandedOffset + childHeight
+							+ content.getMeasuredHeight());
+			break;
+
+		case ORIENTATION_LEFT_TO_RIGHT:
+			childLeft = mExpanded ? width - childWidth - mExpandedOffset
+					: -mCollapsedOffset;
 			childTop = (height - childHeight) / 2;
 
 			content.layout(0, 0, content.getMeasuredWidth(),
 					content.getMeasuredHeight());
 			break;
-		}
-		case ORIENTATION_RIGHT_TO_LEFT: {
-			childLeft = mExpanded ? 0 : width - childWidth;
+
+		case ORIENTATION_RIGHT_TO_LEFT:
+			childLeft = mExpanded ? mExpandedOffset : width - childWidth
+					+ mCollapsedOffset;
 			childTop = (height - childHeight) / 2;
 
-			content.layout(childWidth, 0,
-					childWidth + content.getMeasuredWidth(),
+			content.layout(mExpandedOffset + childWidth, 0, mExpandedOffset
+					+ childWidth + content.getMeasuredWidth(),
 					content.getMeasuredHeight());
 			break;
-		}
+
 		}
 
 		handle.layout(childLeft, childTop, childLeft + childWidth, childTop
 				+ childHeight);
-
 		mHandleHeight = handle.getHeight();
 		mHandleWidth = handle.getWidth();
+
+		sLogcat.v("exit: didOnLayout");
 	}
 
 	@Override
 	public boolean onInterceptTouchEvent(MotionEvent event) {
+		sLogcat.v("entry");
+
 		if (mLocked) {
+			sLogcat.v("exit: ", false, " locked");
 			return false;
 		}
 
-		// any other event filters from here
-		if (mExpanded) {
-			if (mCollapseGestureDetector.onTouchEvent(event)) {
-				return true;
-			}
-		}
-
-		return false; // always return false to receive any following events
-	}
-
-	@Override
-	public boolean onTouchEvent(MotionEvent event) {
-		if (mLocked) {
-			return true;
-		}
-
 		final int action = event.getAction();
+
+		float x = event.getX();
+		float y = event.getY();
+
+		final Rect frame = mFrame;
+		final View handle = mHandle;
+
+		handle.getHitRect(frame);
+		final boolean hit = frame.contains((int) x, (int) y);
+		if (!mTracking && !hit) {
+			sLogcat.v("exit: ", false, " tracking ? ", mTracking, ", hit ? ",
+					hit);
+			return false;
+		}
+
 		if (action == MotionEvent.ACTION_DOWN) {
-			float x = event.getX();
-			float y = event.getY();
-
-			final Rect frame = mFrame;
-			final View handle = mHandle;
-
-			handle.getHitRect(frame);
-			if (!mTracking && ((mContentLocked || !mExpanded))
-					&& !frame.contains((int) x, (int) y)) {
-				return false;
-			}
-
 			mTracking = true;
 
 			handle.setPressed(true);
-
-			if (mOnDrawerCloseListener != null) {
-				mOnDrawerScrollListener.onPreScrollStarted();
-			}
-
 			// Must be called before prepareTracking()
 			prepareContent();
 
@@ -682,26 +516,42 @@ public class SlidingDrawer extends ViewGroup {
 				mOnDrawerScrollListener.onScrollStarted();
 			}
 
-			if (isVertical()) {
-				mTouchDelta = (int) y - mHandle.getTop();
-				final int yBase = mHandle.getTop();
-				prepareTracking(yBase);
+			if (mVertical) {
+				final int top = mHandle.getTop();
+				mTouchDelta = (int) y - top;
+				prepareTracking(top);
 			} else {
-				mTouchDelta = (int) x - mHandle.getLeft();
-				final int xBase = mHandle.getLeft();
-				prepareTracking(xBase);
+				final int left = mHandle.getLeft();
+				mTouchDelta = (int) x - left;
+				prepareTracking(left);
 			}
+			mVelocityTracker.addMovement(event);
+		}
 
-			mVelocityTracker.addMovement(event); // keep track of ACTION_DOWN
-		} else if (mTracking) {
-			mVelocityTracker.addMovement(event); // we also need keep track of
-													// the following events
+		sLogcat.v("exit: ", true);
+		return true;
+	}
 
-			if (action == MotionEvent.ACTION_MOVE) {
+	@Override
+	public boolean onTouchEvent(MotionEvent event) {
+		sLogcat.v("entry");
+
+		if (mLocked) {
+			sLogcat.v("exit: ", true, " locked");
+			return true;
+		}
+
+		if (mTracking) {
+			mVelocityTracker.addMovement(event);
+
+			switch (event.getAction()) {
+			case MotionEvent.ACTION_MOVE:
 				moveHandle((int) (isVertical() ? event.getY() : event.getX())
 						- mTouchDelta);
-			} else if (action == MotionEvent.ACTION_UP
-					|| action == MotionEvent.ACTION_CANCEL) {
+				break; // MotionEvent.ACTION_MOVE
+
+			case MotionEvent.ACTION_UP:
+			case MotionEvent.ACTION_CANCEL:
 				// get the tap velocity, must after VelocityTracker, if don't
 				// want to lose some velocity tracks
 				final float velocity = computeVelocity();
@@ -724,15 +574,11 @@ public class SlidingDrawer extends ViewGroup {
 					// drag to fling
 					performFling(position, velocity, false);
 				}
+				break; // MotionEvent.ACTION_UP || MotionEvent.ACTION_CANCEL
 			}
 		}
 
-		if (mTracking || mAnimating || (!mContentLocked && mExpanded)) {
-			return true;
-		} else {
-			close(); // always but need optimizing in the future
-			return false;
-		}
+		return mTracking || mAnimating || super.onTouchEvent(event);
 	}
 
 	private float computeVelocity() {
@@ -779,22 +625,31 @@ public class SlidingDrawer extends ViewGroup {
 		boolean ret = false;
 
 		switch (mOrientation) {
-		case ORIENTATION_BOTTOM_UP: {
-			ret = (mExpanded && mHandle.getTop() < mTapThreshold)
-					|| (!mExpanded && mHandle.getBottom() > getBottom()
+		case ORIENTATION_TOP_DOWN:
+			ret = (mExpanded && mHandle.getBottom() > getTop() - getBottom()
+					- mExpandedOffset - mTapThreshold)
+					|| (!mExpanded && mHandle.getTop() + mCollapsedOffset < mTapThreshold);
+			break;
+
+		case ORIENTATION_BOTTOM_UP:
+			ret = (mExpanded && mHandle.getTop() < mTapThreshold
+					+ mExpandedOffset)
+					|| (!mExpanded && mHandle.getBottom() - mCollapsedOffset > getBottom()
 							- getTop() - mTapThreshold);
 			break;
-		}
-		case ORIENTATION_LEFT_TO_RIGHT: {
+
+		case ORIENTATION_LEFT_TO_RIGHT:
 			ret = ((mExpanded && mHandle.getRight() > getRight() - getLeft()
-					- mTapThreshold) || (!mExpanded && mHandle.getLeft() < mTapThreshold));
+					- mExpandedOffset - mTapThreshold) || (!mExpanded && mHandle
+					.getLeft() + mCollapsedOffset < mTapThreshold));
 			break;
-		}
-		case ORIENTATION_RIGHT_TO_LEFT: {
-			ret = ((mExpanded && mHandle.getRight() > mTapThreshold) || (!mExpanded && mHandle
-					.getLeft() < getRight() - getLeft() - mTapThreshold));
+
+		case ORIENTATION_RIGHT_TO_LEFT:
+			ret = ((mExpanded && mHandle.getLeft() > mTapThreshold
+					+ mExpandedOffset) || (!mExpanded && mHandle.getRight()
+					- mCollapsedOffset < getRight() - getLeft() - mTapThreshold));
 			break;
-		}
+
 		}
 
 		return ret;
@@ -802,48 +657,21 @@ public class SlidingDrawer extends ViewGroup {
 
 	private void animateClose(int position) {
 		prepareTracking(position);
-		switch (mOrientation) {
-		case ORIENTATION_BOTTOM_UP: {
-			performFling(position, mMaximumAcceleration, true);
-			break;
-		}
-		case ORIENTATION_LEFT_TO_RIGHT: {
-			performFling(position, -mMaximumAcceleration, true);
-			break;
-		}
-		case ORIENTATION_RIGHT_TO_LEFT: {
-			performFling(position, mMaximumAcceleration, true);
-			break;
-		}
-		}
+		performFling(position, mMaximumAcceleration, true);
 	}
 
 	private void animateOpen(int position) {
 		prepareTracking(position);
-		switch (mOrientation) {
-		case ORIENTATION_BOTTOM_UP: {
-			performFling(position, -mMaximumAcceleration, true);
-			break;
-		}
-		case ORIENTATION_LEFT_TO_RIGHT: {
-			performFling(position, mMaximumAcceleration, true);
-			break;
-		}
-		case ORIENTATION_RIGHT_TO_LEFT: {
-			performFling(position, -mMaximumAcceleration, true);
-			break;
-		}
-		}
+		performFling(position, -mMaximumAcceleration, true);
 	}
 
 	/**
-	 * 
 	 * @param position
 	 *            start position
 	 * @param velocity
 	 *            initialized velocity
 	 * @param autoAnimated
-	 * @link {@link #animateOpen()} and {@link #animateClose()}
+	 *            {@link #animateOpen()} and {@link #animateClose()}
 	 */
 	private void performFling(int position, float velocity, boolean autoAnimated) {
 		mAnimationPosition = position;
@@ -858,17 +686,27 @@ public class SlidingDrawer extends ViewGroup {
 
 		if (mExpanded) {
 			// we're EXPANDED
-			int ROLLBACE_CRITICAL_POINT;
-			if (mVertical) {
-				ROLLBACE_CRITICAL_POINT = getTop() + ROLLBACK_OFFSET_THRESHOLD;
-			} else {
-				if (mOrientation == ORIENTATION_LEFT_TO_RIGHT) {
-					ROLLBACE_CRITICAL_POINT = getRight()
-							- ROLLBACK_OFFSET_THRESHOLD;
-				} else {
-					ROLLBACE_CRITICAL_POINT = getLeft()
-							+ ROLLBACK_OFFSET_THRESHOLD;
-				}
+			int ROLLBACE_CRITICAL_POINT = 0;
+			switch (mOrientation) {
+			case ORIENTATION_TOP_DOWN:
+				ROLLBACE_CRITICAL_POINT = getBottom() - mExpandedOffset
+						- ROLLBACK_OFFSET_THRESHOLD;
+				break;
+
+			case ORIENTATION_BOTTOM_UP:
+				ROLLBACE_CRITICAL_POINT = getTop() + mExpandedOffset
+						+ ROLLBACK_OFFSET_THRESHOLD;
+				break;
+
+			case ORIENTATION_LEFT_TO_RIGHT:
+				ROLLBACE_CRITICAL_POINT = getRight() - mExpandedOffset
+						- ROLLBACK_OFFSET_THRESHOLD;
+				break;
+
+			case ORIENTATION_RIGHT_TO_LEFT:
+				ROLLBACE_CRITICAL_POINT = getLeft() + mExpandedOffset
+						+ ROLLBACK_OFFSET_THRESHOLD;
+				break;
 			}
 
 			if (invertedCoord) {
@@ -910,18 +748,25 @@ public class SlidingDrawer extends ViewGroup {
 			}
 		} else {
 			// we're COLLAPSED
-			int ROLLBACE_CRITICAL_POINT;
-			if (mVertical) {
+			int ROLLBACE_CRITICAL_POINT = 0;
+			switch (mOrientation) {
+			case ORIENTATION_TOP_DOWN:
+				ROLLBACE_CRITICAL_POINT = getTop() + ROLLBACK_OFFSET_THRESHOLD;
+				break;
+
+			case ORIENTATION_BOTTOM_UP:
 				ROLLBACE_CRITICAL_POINT = getBottom()
 						- ROLLBACK_OFFSET_THRESHOLD;
-			} else {
-				if (mOrientation == ORIENTATION_LEFT_TO_RIGHT) {
-					ROLLBACE_CRITICAL_POINT = getLeft()
-							+ ROLLBACK_OFFSET_THRESHOLD;
-				} else {
-					ROLLBACE_CRITICAL_POINT = getRight()
-							- ROLLBACK_OFFSET_THRESHOLD;
-				}
+				break;
+
+			case ORIENTATION_LEFT_TO_RIGHT:
+				ROLLBACE_CRITICAL_POINT = getLeft() + ROLLBACK_OFFSET_THRESHOLD;
+				break;
+
+			case ORIENTATION_RIGHT_TO_LEFT:
+				ROLLBACE_CRITICAL_POINT = getRight()
+						- ROLLBACK_OFFSET_THRESHOLD;
+				break;
 			}
 
 			if (!invertedCoord) {
@@ -978,27 +823,33 @@ public class SlidingDrawer extends ViewGroup {
 	private void prepareTracking(int position) {
 		mTracking = true;
 		mVelocityTracker = VelocityTracker.obtain();
-		boolean willOpen = !mExpanded;
-		if (willOpen) {
+		boolean opening = !mExpanded;
+		if (opening) {
 			// tap to expanded very quickly, if allow
 			mAnimatedAcceleration = mMaximumAcceleration;
 			mAnimatedVelocity = mMaximumMajorVelocity;
 
-			// TODO: put it in its place, ready to go if given more action, f.e.
+			// put it in its place, ready to go if given more action, f.e.
 			// dragging, animating or others
 			switch (mOrientation) {
-			case ORIENTATION_BOTTOM_UP: {
-				mAnimationPosition = getHeight() - mHandleHeight;
+			case ORIENTATION_TOP_DOWN:
+				mAnimatedAcceleration = -mCollapsedOffset;
 				break;
-			}
-			case ORIENTATION_LEFT_TO_RIGHT: {
-				mAnimationPosition = 0;
+
+			case ORIENTATION_BOTTOM_UP:
+				mAnimationPosition = getHeight() - mHandleHeight
+						+ mCollapsedOffset;
 				break;
-			}
-			case ORIENTATION_RIGHT_TO_LEFT: {
-				mAnimationPosition = getWidth() - mHandleWidth;
+
+			case ORIENTATION_LEFT_TO_RIGHT:
+				mAnimationPosition = -mCollapsedOffset;
 				break;
-			}
+
+			case ORIENTATION_RIGHT_TO_LEFT:
+				mAnimationPosition = getWidth() - mHandleWidth
+						+ mCollapsedOffset;
+				break;
+
 			}
 			moveHandle((int) mAnimationPosition);
 
@@ -1106,6 +957,74 @@ public class SlidingDrawer extends ViewGroup {
 				invalidate(region);
 			}
 		}
+
+		if (mVertical) {
+			if (position == EXPANDED_FULL_OPEN) {
+				handle.offsetTopAndBottom(mExpandedOffset - handle.getTop());
+				invalidate();
+			} else if (position == COLLAPSED_FULL_CLOSED) {
+				handle.offsetTopAndBottom(mCollapsedOffset + getBottom()
+						- getTop() - mHandleHeight - handle.getTop());
+				invalidate();
+			} else {
+				final int top = handle.getTop();
+				int deltaY = position - top;
+				if (position < mExpandedOffset) {
+					deltaY = mExpandedOffset - top;
+				} else if (deltaY > mCollapsedOffset + getBottom() - getTop()
+						- mHandleHeight - top) {
+					deltaY = mCollapsedOffset + getBottom() - getTop()
+							- mHandleHeight - top;
+				}
+				handle.offsetTopAndBottom(deltaY);
+
+				final Rect frame = mFrame;
+				final Rect region = mInvalidate;
+
+				handle.getHitRect(frame);
+				region.set(frame);
+
+				region.union(frame.left, frame.top - deltaY, frame.right,
+						frame.bottom - deltaY);
+				region.union(0, frame.bottom - deltaY, getWidth(), frame.bottom
+						- deltaY + mContent.getHeight());
+
+				invalidate(region);
+			}
+		} else {
+			if (position == EXPANDED_FULL_OPEN) {
+				handle.offsetLeftAndRight(mExpandedOffset - handle.getLeft());
+				invalidate();
+			} else if (position == COLLAPSED_FULL_CLOSED) {
+				handle.offsetLeftAndRight(mCollapsedOffset + getRight()
+						- getLeft() - mHandleWidth - handle.getLeft());
+				invalidate();
+			} else {
+				final int left = handle.getLeft();
+				int deltaX = position - left;
+				if (position < mExpandedOffset) {
+					deltaX = mExpandedOffset - left;
+				} else if (deltaX > mCollapsedOffset + getRight() - getLeft()
+						- mHandleWidth - left) {
+					deltaX = mCollapsedOffset + getRight() - getLeft()
+							- mHandleWidth - left;
+				}
+				handle.offsetLeftAndRight(deltaX);
+
+				final Rect frame = mFrame;
+				final Rect region = mInvalidate;
+
+				handle.getHitRect(frame);
+				region.set(frame);
+
+				region.union(frame.left - deltaX, frame.top, frame.right
+						- deltaX, frame.bottom);
+				region.union(frame.right - deltaX, 0, frame.right - deltaX
+						+ mContent.getWidth(), getHeight());
+
+				invalidate(region);
+			}
+		}
 	}
 
 	private void prepareContent() {
@@ -1117,48 +1036,35 @@ public class SlidingDrawer extends ViewGroup {
 		// before creating the cached bitmap
 		final View content = mContent;
 		if (content.isLayoutRequested()) {
-			if (isVertical()) {
+			if (mVertical) {
 				final int childHeight = mHandleHeight;
-				int height = getBottom() - getTop() - childHeight;
+				int height = getBottom() - getTop() - childHeight
+						- mExpandedOffset;
 				content.measure(MeasureSpec.makeMeasureSpec(getRight()
 						- getLeft(), MeasureSpec.EXACTLY), MeasureSpec
 						.makeMeasureSpec(height, MeasureSpec.EXACTLY));
-				if (mOrientation == ORIENTATION_BOTTOM_UP) {
-					content.layout(0, childHeight, content.getMeasuredWidth(),
-							childHeight + content.getMeasuredHeight());
-				}
+				content.layout(0, mExpandedOffset + childHeight,
+						content.getMeasuredWidth(), mExpandedOffset
+								+ childHeight + content.getMeasuredHeight());
 			} else {
-				// final int childWidth = mHandle.getWidth();
-				// int width = getRight() - getLeft() - childWidth;
-				// content.measure(MeasureSpec.makeMeasureSpec(width,
-				// MeasureSpec.EXACTLY), MeasureSpec.makeMeasureSpec(
-				// getBottom() - getTop(), MeasureSpec.EXACTLY));
-				// if (mOrientation == ORIENTATION_LEFT_TO_RIGHT) {
-				// content.layout(0, 0, content.getMeasuredWidth(),
-				// content.getMeasuredHeight());
-				// } else {
-				// content.layout(childWidth, 0,
-				// childWidth + content.getMeasuredWidth(),
-				// content.getMeasuredHeight());
-				// }
-
-				// TODO: leftToRight
-				int width = getRight() - getLeft();
+				final int childWidth = mHandle.getWidth();
+				int width = getRight() - getLeft() - childWidth
+						- mExpandedOffset;
 				content.measure(MeasureSpec.makeMeasureSpec(width,
 						MeasureSpec.EXACTLY), MeasureSpec.makeMeasureSpec(
 						getBottom() - getTop(), MeasureSpec.EXACTLY));
-				content.layout(0, 0, content.getMeasuredWidth(),
+				content.layout(childWidth + mExpandedOffset, 0, mExpandedOffset
+						+ childWidth + content.getMeasuredWidth(),
 						content.getMeasuredHeight());
 			}
 		}
 		// Try only once... we should really loop but it's not a big deal
 		// if the draw was cancelled, it will only be temporary anyway
 		content.getViewTreeObserver().dispatchOnPreDraw();
+		if (!content.isHardwareAccelerated())
+			content.buildDrawingCache();
 
-		// Creating the cached bitmap
-		content.buildDrawingCache();
-
-		// content.setVisibility(View.GONE);
+		content.setVisibility(View.GONE);
 	}
 
 	private void stopTracking() {
@@ -1176,36 +1082,15 @@ public class SlidingDrawer extends ViewGroup {
 	}
 
 	private void doAnimation() {
-		boolean willOpen = false;
-		boolean willClose = false;
-
 		if (mAnimating) {
 			incrementAnimation();
-
-			switch (mOrientation) {
-			case ORIENTATION_BOTTOM_UP: {
-				willOpen = (mAnimationPosition < 0);
-				willClose = (mAnimationPosition >= (getHeight() - 1));
-				break;
-			}
-			case ORIENTATION_LEFT_TO_RIGHT: {
-				willOpen = (mAnimationPosition >= (getWidth() - 1));
-				willClose = (mAnimationPosition < 0);
-				break;
-			}
-			case ORIENTATION_RIGHT_TO_LEFT: {
-				willOpen = (mAnimationPosition < 0);
-				willClose = (mAnimationPosition >= (getWidth() - 1));
-				break;
-			}
-			}
-
-			if (willOpen) {
-				mAnimating = false;
-				openDrawer();
-			} else if (willClose) {
+			if (mAnimationPosition >= mCollapsedOffset
+					+ (mVertical ? getHeight() : getWidth()) - 1) {
 				mAnimating = false;
 				closeDrawer();
+			} else if (mAnimationPosition < mExpandedOffset) {
+				mAnimating = false;
+				openDrawer();
 			} else {
 				moveHandle((int) mAnimationPosition);
 				mCurrentAnimationTime += ANIMATION_FRAME_DURATION;
@@ -1241,8 +1126,8 @@ public class SlidingDrawer extends ViewGroup {
 		} else {
 			closeDrawer();
 		}
-
-		refresh();
+		invalidate();
+		requestLayout();
 	}
 
 	/**
@@ -1271,8 +1156,8 @@ public class SlidingDrawer extends ViewGroup {
 	 */
 	public void open() {
 		openDrawer();
-
-		refresh();
+		invalidate();
+		requestLayout();
 
 		sendAccessibilityEvent(AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED);
 	}
@@ -1286,11 +1171,6 @@ public class SlidingDrawer extends ViewGroup {
 	 */
 	public void close() {
 		closeDrawer();
-
-		refresh();
-	}
-
-	private void refresh() {
 		invalidate();
 		requestLayout();
 	}
@@ -1306,13 +1186,11 @@ public class SlidingDrawer extends ViewGroup {
 	 */
 	public void animateClose() {
 		prepareContent();
-
 		final OnDrawerScrollListener scrollListener = mOnDrawerScrollListener;
 		if (scrollListener != null) {
 			scrollListener.onScrollStarted();
 		}
-
-		animateClose(isVertical() ? mHandle.getTop() : mHandle.getLeft());
+		animateClose(mVertical ? mHandle.getTop() : mHandle.getLeft());
 
 		if (scrollListener != null) {
 			scrollListener.onScrollEnded();
@@ -1330,13 +1208,11 @@ public class SlidingDrawer extends ViewGroup {
 	 */
 	public void animateOpen() {
 		prepareContent();
-
 		final OnDrawerScrollListener scrollListener = mOnDrawerScrollListener;
 		if (scrollListener != null) {
 			scrollListener.onScrollStarted();
 		}
-
-		animateOpen(isVertical() ? mHandle.getTop() : mHandle.getLeft());
+		animateOpen(mVertical ? mHandle.getTop() : mHandle.getLeft());
 
 		sendAccessibilityEvent(AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED);
 
@@ -1364,20 +1240,14 @@ public class SlidingDrawer extends ViewGroup {
 	// info.setClassName(SlidingDrawer.class.getName());
 	// }
 
-	/**
-	 * Note that we need always notify {@link OnDrawerCloseListener}, ensure
-	 * changing back to the {@link Hotspot.OnHotspotListener} state, so we
-	 * comment out the block in the fun. We are at the expense of some little
-	 * performance.
-	 */
 	private void closeDrawer() {
 		moveHandle(COLLAPSED_FULL_CLOSED);
 		mContent.setVisibility(View.GONE);
 		mContent.destroyDrawingCache();
 
-		// if (!mExpanded) {
-		// return;
-		// }
+		if (!mExpanded) {
+			return;
+		}
 
 		mExpanded = false;
 		if (mOnDrawerCloseListener != null) {
@@ -1400,27 +1270,97 @@ public class SlidingDrawer extends ViewGroup {
 		}
 	}
 
-	private boolean isHorizontal() {
-		return !isVertical();
+	/**
+	 * Sets the listener that receives a notification when the drawer becomes
+	 * open.
+	 * 
+	 * @param onDrawerOpenListener
+	 *            The listener to be notified when the drawer is opened.
+	 */
+	public void setOnDrawerOpenListener(
+			OnDrawerOpenListener onDrawerOpenListener) {
+		mOnDrawerOpenListener = onDrawerOpenListener;
 	}
 
-	private boolean isVertical() {
-		return mVertical;
+	/**
+	 * Sets the listener that receives a notification when the drawer becomes
+	 * close.
+	 * 
+	 * @param onDrawerCloseListener
+	 *            The listener to be notified when the drawer is closed.
+	 */
+	public void setOnDrawerCloseListener(
+			OnDrawerCloseListener onDrawerCloseListener) {
+		mOnDrawerCloseListener = onDrawerCloseListener;
 	}
 
-	private void checkOrientation() {
-		String bits = Integer.toBinaryString(mOrientation);
-		boolean isValidLen = (bits.length() <= 4);
-		boolean isValidFlagBit = false;
-		if (isValidLen) {
-			final String rgEx = "0";
-			isValidFlagBit = (bits.split(rgEx).length == 1);
-		}
-		if (isValidLen && isValidFlagBit
-				&& mOrientation == ORIENTATION_TOP_DOWN) {
-			throw new IllegalArgumentException(
-					"The orientation attribute is required, or the assigned orientation is undefined.");
-		}
+	/**
+	 * Sets the listener that receives a notification when the drawer starts or
+	 * ends a scroll. A fling is considered as a scroll. A fling will also
+	 * trigger a drawer opened or drawer closed event.
+	 * 
+	 * @param onDrawerScrollListener
+	 *            The listener to be notified when scrolling starts or stops.
+	 */
+	public void setOnDrawerScrollListener(
+			OnDrawerScrollListener onDrawerScrollListener) {
+		mOnDrawerScrollListener = onDrawerScrollListener;
+	}
+
+	/**
+	 * Returns the handle of the drawer.
+	 * 
+	 * @return The View reprenseting the handle of the drawer, identified by the
+	 *         "handle" id in XML.
+	 */
+	public View getHandle() {
+		return mHandle;
+	}
+
+	/**
+	 * Returns the content of the drawer.
+	 * 
+	 * @return The View reprenseting the content of the drawer, identified by
+	 *         the "content" id in XML.
+	 */
+	public View getContent() {
+		return mContent;
+	}
+
+	/**
+	 * Unlocks the SlidingDrawer so that touch events are processed.
+	 * 
+	 * @see #lock()
+	 */
+	public void unlock() {
+		mLocked = false;
+	}
+
+	/**
+	 * Locks the SlidingDrawer so that touch events are ignores.
+	 * 
+	 * @see #unlock()
+	 */
+	public void lock() {
+		mLocked = true;
+	}
+
+	/**
+	 * Indicates whether the drawer is currently fully opened.
+	 * 
+	 * @return True if the drawer is opened, false otherwise.
+	 */
+	public boolean isOpened() {
+		return mExpanded;
+	}
+
+	/**
+	 * Indicates whether the drawer is scrolling or flinging.
+	 * 
+	 * @return True if the drawer is scroller or flinging, false otherwise.
+	 */
+	public boolean isMoving() {
+		return mTracking || mAnimating;
 	}
 
 	private class DrawerToggler implements OnClickListener {
@@ -1450,64 +1390,25 @@ public class SlidingDrawer extends ViewGroup {
 		}
 	}
 
-	/**
-	 * Fling to collapse gesture detector listener, initialized in
-	 * {@link SlidingDrawer#SlidingDrawer(Context, AttributeSet, int)} and
-	 * called back by {@link SlidingDrawer#mOnCollapseGestureListener} at
-	 * {@link SlidingDrawer#onInterceptTouchEvent(MotionEvent)}.
-	 * 
-	 * @author tagorewang
-	 */
-	private class CollapseGestureDetector extends
-			GestureDetector.SimpleOnGestureListener {
+	private boolean isHorizontal() {
+		return !isVertical();
+	}
 
-		/**
-		 * @see #onScroll(MotionEvent, MotionEvent, float, float)
-		 */
-		private static final float MAXIMUM_MULTIPLE_CRITICAL = 4.0f;
+	private boolean isVertical() {
+		return mVertical;
+	}
 
-		private boolean mOnScrollFilter;
-		private boolean mOnScrollStarted;
-
-		@Override
-		public boolean onDown(MotionEvent e) {
-			mOnScrollFilter = false;
-			mOnScrollStarted = false;
-			return false;
+	private void checkOrientation() {
+		String bits = Integer.toBinaryString(mOrientation);
+		boolean isValidLen = (bits.length() <= 4);
+		boolean isValidFlagBit = false;
+		if (isValidLen) {
+			final String rgEx = "0";
+			isValidFlagBit = (bits.split(rgEx).length == 1);
 		}
-
-		/**
-		 * if {@value #MAXIMUM_MULTIPLE_CRITICAL} * |distanceX| < |distanceY| is
-		 * false, we treat the scrolling as vertical scrolling, not horizontal;
-		 * and we must scroll from right to left at first time, otherwise it
-		 * won't handle any following events.
-		 * 
-		 * @see #MAXIMUM_MULTIPLE_CRITICAL
-		 */
-		@Override
-		public boolean onScroll(MotionEvent e1, MotionEvent e2,
-				float distanceX, float distanceY) {
-			if (Math.abs(distanceY * MAXIMUM_MULTIPLE_CRITICAL) > Math
-					.abs(distanceX)) {
-				// if not horizontal scrolling
-				return false;
-			}
-
-			if (!mOnScrollStarted && distanceX > 0) {
-				mOnScrollStarted = true;
-				if (!mOnScrollFilter) {
-					onTouchEvent(e1);
-
-				}
-			} else {
-				mOnScrollFilter = true;
-			}
-
-			if (!mOnScrollFilter && mOnScrollStarted) {
-				return onTouchEvent(e2);
-			} else {
-				return false;
-			}
+		if (!(isValidLen && isValidFlagBit)) {
+			throw new IllegalArgumentException(
+					"The orientation attribute is required, or the assigned orientation is undefined.");
 		}
 
 	}

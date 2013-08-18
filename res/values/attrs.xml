@@ -24,8 +24,8 @@
 <resources>
 
     <!--
-      SlidingDrawer specific attributes. These attributes are used to configure
-         a SlidingDrawer from XML.
+         SlidingDrawer specific attributes. These attributes are used to configure
+         a SlidingDrawer from XML.
     -->
     <declare-styleable name="SlidingDrawer">
 
@@ -35,7 +35,7 @@
         <attr name="content" format="reference" />
         <!-- Orientation of the SlidingDrawer. -->
         <attr name="orientation" format="enum">
-            <enum name="topDown" value="1"/>
+            <enum name="topDown" value="1" />
             <enum name="bottomUp" value="2" />
             <enum name="leftToRight" value="4" />
             <enum name="rightToLeft" value="8" />
@@ -45,6 +45,8 @@
              on the handle.  (If false, the user must drag or fling, or click
              using the trackball, to open/close the drawer.)  Default is true.
         -->
+        <attr name="collapsedOffset" format="dimension" />
+        <attr name="expandedOffset" format="dimension" />
         <attr name="allowSingleTap" format="boolean" />
         <!--
              Indicates whether the drawer should be opened/closed with an animation

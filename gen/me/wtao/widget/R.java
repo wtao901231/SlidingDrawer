@@ -9,19 +9,14 @@ package me.wtao.widget;
 
 public final class R {
     public static final class attr {
-        /** 
-             Indicates whether the drawer can be opened/closed by a single tap
-             on the handle.  (If false, the user must drag or fling, or click
-             using the trackball, to open/close the drawer.)  Default is true.
-        
-         <p>Must be a boolean value, either "<code>true</code>" or "<code>false</code>".
+        /** <p>Must be a boolean value, either "<code>true</code>" or "<code>false</code>".
 <p>This may also be a reference to a resource (in the form
 "<code>@[<i>package</i>:]<i>type</i>:<i>name</i></code>") or
 theme attribute (in the form
 "<code>?[<i>package</i>:][<i>type</i>:]<i>name</i></code>")
 containing a value of this type.
          */
-        public static final int allowSingleTap=0x7f010003;
+        public static final int allowSingleTap=0x7f010005;
         /** 
              Indicates whether the drawer should be opened/closed with an animation
              when the user clicks the handle. Default is true.
@@ -33,12 +28,37 @@ theme attribute (in the form
 "<code>?[<i>package</i>:][<i>type</i>:]<i>name</i></code>")
 containing a value of this type.
          */
-        public static final int animateOnClick=0x7f010004;
+        public static final int animateOnClick=0x7f010006;
+        /** 
+             Indicates whether the drawer can be opened/closed by a single tap
+             on the handle.  (If false, the user must drag or fling, or click
+             using the trackball, to open/close the drawer.)  Default is true.
+        
+         <p>Must be a dimension value, which is a floating point number appended with a unit such as "<code>14.5sp</code>".
+Available units are: px (pixels), dp (density-independent pixels), sp (scaled pixels based on preferred font size),
+in (inches), mm (millimeters).
+<p>This may also be a reference to a resource (in the form
+"<code>@[<i>package</i>:]<i>type</i>:<i>name</i></code>") or
+theme attribute (in the form
+"<code>?[<i>package</i>:][<i>type</i>:]<i>name</i></code>")
+containing a value of this type.
+         */
+        public static final int collapsedOffset=0x7f010003;
         /**  Identifier for the child that represents the drawer's content. 
          <p>Must be a reference to another resource, in the form "<code>@[+][<i>package</i>:]<i>type</i>:<i>name</i></code>"
 or to a theme attribute in the form "<code>?[<i>package</i>:][<i>type</i>:]<i>name</i></code>".
          */
         public static final int content=0x7f010001;
+        /** <p>Must be a dimension value, which is a floating point number appended with a unit such as "<code>14.5sp</code>".
+Available units are: px (pixels), dp (density-independent pixels), sp (scaled pixels based on preferred font size),
+in (inches), mm (millimeters).
+<p>This may also be a reference to a resource (in the form
+"<code>@[<i>package</i>:]<i>type</i>:<i>name</i></code>") or
+theme attribute (in the form
+"<code>?[<i>package</i>:][<i>type</i>:]<i>name</i></code>")
+containing a value of this type.
+         */
+        public static final int expandedOffset=0x7f010004;
         /**  Identifier for the child that represents the drawer's handle. 
          <p>Must be a reference to another resource, in the form "<code>@[+][<i>package</i>:]<i>type</i>:<i>name</i></code>"
 or to a theme attribute in the form "<code>?[<i>package</i>:][<i>type</i>:]<i>name</i></code>".
@@ -105,14 +125,14 @@ or to a theme attribute in the form "<code>?[<i>package</i>:][<i>type</i>:]<i>na
          */
         public static final int activity_horizontal_margin=0x7f060000;
         public static final int activity_vertical_margin=0x7f060001;
-        public static final int bottom_offset=0x7f06000a;
+        public static final int collapsed_offset=0x7f06000a;
+        public static final int expanded_offset=0x7f060009;
         public static final int handle_height=0x7f060008;
         public static final int handle_width=0x7f060007;
         public static final int shape_corner_radius=0x7f060002;
         public static final int shape_stroke_width=0x7f060003;
         public static final int sliding_drawer_outter_height=0x7f060005;
         public static final int sliding_drawer_outter_width=0x7f060006;
-        public static final int top_offset=0x7f060009;
         public static final int view_margin=0x7f060004;
     }
     public static final class drawable {
@@ -173,46 +193,41 @@ or to a theme attribute in the form "<code>?[<i>package</i>:][<i>type</i>:]<i>na
     }
     public static final class styleable {
         /** 
-      SlidingDrawer specific attributes. These attributes are used to configure
+         SlidingDrawer specific attributes. These attributes are used to configure
          a SlidingDrawer from XML.
-
-
-
-
     
            <p>Includes the following attributes:</p>
            <table>
            <colgroup align="left" />
            <colgroup align="left" />
            <tr><th>Attribute</th><th>Description</th></tr>
-           <tr><td><code>{@link #SlidingDrawer_allowSingleTap me.wtao.widget:allowSingleTap}</code></td><td>
-             Indicates whether the drawer can be opened/closed by a single tap
-             on the handle.</td></tr>
+           <tr><td><code>{@link #SlidingDrawer_allowSingleTap me.wtao.widget:allowSingleTap}</code></td><td></td></tr>
            <tr><td><code>{@link #SlidingDrawer_animateOnClick me.wtao.widget:animateOnClick}</code></td><td>
              Indicates whether the drawer should be opened/closed with an animation
              when the user clicks the handle.</td></tr>
+           <tr><td><code>{@link #SlidingDrawer_collapsedOffset me.wtao.widget:collapsedOffset}</code></td><td>
+             Indicates whether the drawer can be opened/closed by a single tap
+             on the handle.</td></tr>
            <tr><td><code>{@link #SlidingDrawer_content me.wtao.widget:content}</code></td><td> Identifier for the child that represents the drawer's content.</td></tr>
+           <tr><td><code>{@link #SlidingDrawer_expandedOffset me.wtao.widget:expandedOffset}</code></td><td></td></tr>
            <tr><td><code>{@link #SlidingDrawer_handle me.wtao.widget:handle}</code></td><td> Identifier for the child that represents the drawer's handle.</td></tr>
            <tr><td><code>{@link #SlidingDrawer_orientation me.wtao.widget:orientation}</code></td><td> Orientation of the SlidingDrawer.</td></tr>
            </table>
            @see #SlidingDrawer_allowSingleTap
            @see #SlidingDrawer_animateOnClick
+           @see #SlidingDrawer_collapsedOffset
            @see #SlidingDrawer_content
+           @see #SlidingDrawer_expandedOffset
            @see #SlidingDrawer_handle
            @see #SlidingDrawer_orientation
          */
         public static final int[] SlidingDrawer = {
             0x7f010000, 0x7f010001, 0x7f010002, 0x7f010003,
-            0x7f010004
+            0x7f010004, 0x7f010005, 0x7f010006
         };
         /**
-          <p>
-          @attr description
-          
-             Indicates whether the drawer can be opened/closed by a single tap
-             on the handle.  (If false, the user must drag or fling, or click
-             using the trackball, to open/close the drawer.)  Default is true.
-        
+          <p>This symbol is the offset where the {@link me.wtao.widget.R.attr#allowSingleTap}
+          attribute's value can be found in the {@link #SlidingDrawer} array.
 
 
           <p>Must be a boolean value, either "<code>true</code>" or "<code>false</code>".
@@ -221,10 +236,9 @@ or to a theme attribute in the form "<code>?[<i>package</i>:][<i>type</i>:]<i>na
 theme attribute (in the form
 "<code>?[<i>package</i>:][<i>type</i>:]<i>name</i></code>")
 containing a value of this type.
-          <p>This is a private symbol.
           @attr name me.wtao.widget:allowSingleTap
         */
-        public static final int SlidingDrawer_allowSingleTap = 3;
+        public static final int SlidingDrawer_allowSingleTap = 5;
         /**
           <p>
           @attr description
@@ -243,7 +257,29 @@ containing a value of this type.
           <p>This is a private symbol.
           @attr name me.wtao.widget:animateOnClick
         */
-        public static final int SlidingDrawer_animateOnClick = 4;
+        public static final int SlidingDrawer_animateOnClick = 6;
+        /**
+          <p>
+          @attr description
+          
+             Indicates whether the drawer can be opened/closed by a single tap
+             on the handle.  (If false, the user must drag or fling, or click
+             using the trackball, to open/close the drawer.)  Default is true.
+        
+
+
+          <p>Must be a dimension value, which is a floating point number appended with a unit such as "<code>14.5sp</code>".
+Available units are: px (pixels), dp (density-independent pixels), sp (scaled pixels based on preferred font size),
+in (inches), mm (millimeters).
+<p>This may also be a reference to a resource (in the form
+"<code>@[<i>package</i>:]<i>type</i>:<i>name</i></code>") or
+theme attribute (in the form
+"<code>?[<i>package</i>:][<i>type</i>:]<i>name</i></code>")
+containing a value of this type.
+          <p>This is a private symbol.
+          @attr name me.wtao.widget:collapsedOffset
+        */
+        public static final int SlidingDrawer_collapsedOffset = 3;
         /**
           <p>
           @attr description
@@ -256,6 +292,22 @@ or to a theme attribute in the form "<code>?[<i>package</i>:][<i>type</i>:]<i>na
           @attr name me.wtao.widget:content
         */
         public static final int SlidingDrawer_content = 1;
+        /**
+          <p>This symbol is the offset where the {@link me.wtao.widget.R.attr#expandedOffset}
+          attribute's value can be found in the {@link #SlidingDrawer} array.
+
+
+          <p>Must be a dimension value, which is a floating point number appended with a unit such as "<code>14.5sp</code>".
+Available units are: px (pixels), dp (density-independent pixels), sp (scaled pixels based on preferred font size),
+in (inches), mm (millimeters).
+<p>This may also be a reference to a resource (in the form
+"<code>@[<i>package</i>:]<i>type</i>:<i>name</i></code>") or
+theme attribute (in the form
+"<code>?[<i>package</i>:][<i>type</i>:]<i>name</i></code>")
+containing a value of this type.
+          @attr name me.wtao.widget:expandedOffset
+        */
+        public static final int SlidingDrawer_expandedOffset = 4;
         /**
           <p>
           @attr description
