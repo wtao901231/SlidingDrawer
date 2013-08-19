@@ -125,14 +125,16 @@ or to a theme attribute in the form "<code>?[<i>package</i>:][<i>type</i>:]<i>na
          */
         public static final int activity_horizontal_margin=0x7f060000;
         public static final int activity_vertical_margin=0x7f060001;
-        public static final int collapsed_offset=0x7f06000a;
-        public static final int expanded_offset=0x7f060009;
-        public static final int handle_height=0x7f060008;
-        public static final int handle_width=0x7f060007;
+        public static final int collapsed_offset=0x7f06000c;
+        public static final int expanded_offset=0x7f06000b;
+        public static final int horizontal_handle_height=0x7f060008;
+        public static final int horizontal_handle_width=0x7f060007;
         public static final int shape_corner_radius=0x7f060002;
         public static final int shape_stroke_width=0x7f060003;
         public static final int sliding_drawer_outter_height=0x7f060005;
         public static final int sliding_drawer_outter_width=0x7f060006;
+        public static final int vertical_handle_height=0x7f06000a;
+        public static final int vertical_handle_width=0x7f060009;
         public static final int view_margin=0x7f060004;
     }
     public static final class drawable {
@@ -141,18 +143,24 @@ or to a theme attribute in the form "<code>?[<i>package</i>:][<i>type</i>:]<i>na
         public static final int ic_launcher=0x7f020002;
     }
     public static final class id {
-        public static final int action_settings=0x7f040008;
+        public static final int action_settings=0x7f04000c;
         public static final int bottomUp=0x7f040001;
         public static final int content=0x7f040006;
+        public static final int drawer=0x7f04000b;
+        public static final int drawer_bottom_up=0x7f040008;
+        public static final int drawer_left_to_right=0x7f040009;
         public static final int drawer_outter_layout=0x7f040004;
-        public static final int drawer_right_to_left=0x7f040005;
+        public static final int drawer_right_to_left=0x7f04000a;
+        public static final int drawer_top_down=0x7f040005;
         public static final int handle=0x7f040007;
         public static final int leftToRight=0x7f040002;
         public static final int rightToLeft=0x7f040003;
         public static final int topDown=0x7f040000;
     }
     public static final class layout {
-        public static final int activity_demo=0x7f030000;
+        public static final int activity_demo_1=0x7f030000;
+        public static final int activity_demo_2=0x7f030001;
+        public static final int layout_sliding_drawer=0x7f030002;
     }
     public static final class menu {
         public static final int demo=0x7f090000;

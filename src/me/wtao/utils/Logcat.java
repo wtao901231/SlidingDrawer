@@ -133,7 +133,7 @@ public class Logcat {
 					builder.setMessage(msg);
 					AlertDialog dialog = builder.create();
 					dialog.show();
-				} else {					
+				} else {
 					Toast.makeText(mContext, msg, Toast.LENGTH_SHORT).show();
 				}
 			}

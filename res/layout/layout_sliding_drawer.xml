@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:widget="http://schemas.android.com/apk/res/me.wtao.widget"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent" >
+
+    <me.wtao.widget.SlidingDrawer
+        android:id="@+id/drawer"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        widget:allowSingleTap="true"
+        widget:animateOnClick="true"
+        widget:collapsedOffset="@dimen/collapsed_offset"
+        widget:content="@+id/content"
+        widget:expandedOffset="@dimen/expanded_offset"
+        widget:handle="@+id/handle"
+        widget:orientation="topDown" >
+
+        <RelativeLayout
+            android:id="@id/handle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:clickable="true" >
+
+            <TextView
+                android:layout_width="@dimen/horizontal_handle_width"
+                android:layout_height="@dimen/horizontal_handle_height"
+                android:layout_margin="@dimen/view_margin"
+                android:background="@drawable/bk_holo_red_light"
+                android:gravity="center"
+                android:text="@string/handle_prompt"
+                android:textColor="@android:color/white" />
+        </RelativeLayout>
+
+        <RelativeLayout
+            android:id="@id/content"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent" >
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_margin="@dimen/view_margin"
+                android:background="@drawable/bk_holo_blue_light"
+                android:gravity="center"
+                android:text="@string/content_prompt"
+                android:textColor="@android:color/white" />
+        </RelativeLayout>
+    </me.wtao.widget.SlidingDrawer>
+
+</FrameLayout>
