@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:demo="http://schemas.android.com/apk/res/android.support.widget"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent" >
+
+    <android.support.widget.SlidingDrawer
+        android:id="@+id/drawer"
+        android:layout_width="match_parent"
+        android:layout_height="256dp"
+        android:layout_alignParentTop="true"
+        android:orientation="vertical"
+        demo:animateOnClick="true"
+        demo:content="@+id/content"
+        demo:handle="@+id/handle"
+        demo:orientation="topDown"
+        demo:tensionTween="#ff33b5e5" >
+
+        <TextView
+            android:id="@+id/content"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="#ff33b5e5"
+            android:gravity="center"
+            android:text="Content"
+            android:textColor="@android:color/white" />
+
+        <TextView
+            android:id="@+id/handle"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:layout_alignParentBottom="true"
+            android:background="#ff0099cc"
+            android:gravity="center"
+            android:text="H"
+            android:textColor="@android:color/white" />
+    </android.support.widget.SlidingDrawer>
+
+</RelativeLayout>
