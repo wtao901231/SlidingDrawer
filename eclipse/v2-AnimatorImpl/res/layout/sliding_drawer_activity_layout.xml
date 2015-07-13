@@ -5,34 +5,130 @@
     android:layout_height="match_parent" >
 
     <android.support.widget.SlidingDrawer
-        android:id="@+id/drawer"
         android:layout_width="match_parent"
-        android:layout_height="256dp"
+        android:layout_height="match_parent"
         android:layout_alignParentTop="true"
+        android:layout_margin="48dp"
         android:orientation="vertical"
         demo:animateOnClick="true"
-        demo:content="@+id/content"
-        demo:handle="@+id/handle"
+        demo:content="@+id/content1"
+        demo:handle="@+id/handle1"
         demo:orientation="topDown"
         demo:tensionTween="#ff33b5e5" >
 
         <TextView
-            android:id="@+id/content"
+            android:id="@+id/content1"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:background="#ff33b5e5"
             android:gravity="center"
-            android:text="Content"
+            android:text="1"
             android:textColor="@android:color/white" />
 
         <TextView
-            android:id="@+id/handle"
+            android:id="@+id/handle1"
             android:layout_width="match_parent"
             android:layout_height="48dp"
             android:layout_alignParentBottom="true"
             android:background="#ff0099cc"
             android:gravity="center"
-            android:text="H"
+            android:text="T"
+            android:textColor="@android:color/white" />
+    </android.support.widget.SlidingDrawer>
+
+    <android.support.widget.SlidingDrawer
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_alignParentTop="true"
+        android:layout_margin="48dp"
+        android:orientation="vertical"
+        demo:animateOnClick="true"
+        demo:content="@+id/content2"
+        demo:handle="@+id/handle2"
+        demo:orientation="bottomUp"
+        demo:tensionTween="#ff33b5e5" >
+
+        <TextView
+            android:id="@+id/content2"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="#ff33b5e5"
+            android:gravity="center"
+            android:text="2"
+            android:textColor="@android:color/white" />
+
+        <TextView
+            android:id="@+id/handle2"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:layout_alignParentTop="true"
+            android:background="#ff0099cc"
+            android:gravity="center"
+            android:text="B"
+            android:textColor="@android:color/white" />
+    </android.support.widget.SlidingDrawer>
+
+    <android.support.widget.SlidingDrawer
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_alignParentTop="true"
+        android:layout_margin="48dp"
+        android:orientation="vertical"
+        demo:animateOnClick="true"
+        demo:content="@+id/content3"
+        demo:handle="@+id/handle3"
+        demo:orientation="leftToRight"
+        demo:tensionTween="#ff33b5e5" >
+
+        <TextView
+            android:id="@+id/content3"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="#ff33b5e5"
+            android:gravity="center"
+            android:text="3"
+            android:textColor="@android:color/white" />
+
+        <TextView
+            android:id="@+id/handle3"
+            android:layout_width="48dp"
+            android:layout_height="match_parent"
+            android:layout_alignParentRight="true"
+            android:background="#ff0099cc"
+            android:gravity="center"
+            android:text="L"
+            android:textColor="@android:color/white" />
+    </android.support.widget.SlidingDrawer>
+
+    <android.support.widget.SlidingDrawer
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_alignParentTop="true"
+        android:layout_margin="48dp"
+        android:orientation="vertical"
+        demo:animateOnClick="true"
+        demo:content="@+id/content4"
+        demo:handle="@+id/handle4"
+        demo:orientation="rightToLeft"
+        demo:tensionTween="#ff33b5e5" >
+
+        <TextView
+            android:id="@+id/content4"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="#ff33b5e5"
+            android:gravity="center"
+            android:text="4"
+            android:textColor="@android:color/white" />
+
+        <TextView
+            android:id="@+id/handle4"
+            android:layout_width="48dp"
+            android:layout_height="match_parent"
+            android:layout_alignParentLeft="true"
+            android:background="#ff0099cc"
+            android:gravity="center"
+            android:text="R"
             android:textColor="@android:color/white" />
     </android.support.widget.SlidingDrawer>
 

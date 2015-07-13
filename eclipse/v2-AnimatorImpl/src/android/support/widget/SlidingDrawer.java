@@ -80,6 +80,8 @@ public class SlidingDrawer extends RelativeLayout implements OnTouchListener, An
 	
 	private Animator mTransAnimator;
 	private boolean mExpanded;
+	
+	private TensionView mTensionView;
 
 	/**
 	 * Creates a new SlidingDrawer from a specified set of attributes defined in
@@ -206,8 +208,6 @@ public class SlidingDrawer extends RelativeLayout implements OnTouchListener, An
 		parentView.addView(mTensionView);
 	}
 	
-	private TensionView mTensionView;
-	
 	static class TensionView extends FrameLayout {
 
 		private final WeakReference<SlidingDrawer> mHostViewRef;
@@ -215,6 +215,11 @@ public class SlidingDrawer extends RelativeLayout implements OnTouchListener, An
 		public TensionView(SlidingDrawer hostView) {
 			super(hostView.getContext());
 			mHostViewRef = new WeakReference<SlidingDrawer>(hostView);
+		}
+		
+		@Override
+		protected void onLayout(boolean changed, int left, int top, int right, int bottom) {
+			updateViewTension();
 		}
 		
 		public void updateViewTension() {
@@ -227,13 +232,13 @@ public class SlidingDrawer extends RelativeLayout implements OnTouchListener, An
 				int x = (int) ViewHelper.getX(hostView);
 				if(ORIENTATION_RIGHT_TO_LEFT == orientation) {
 					setTop(hostView.getTop());
-					setLeft(hostView.getLeft());
-					setRight(x - hostView.getWidth());
+					setLeft(x + hostView.getWidth());
+					setRight(hostView.getRight());
 					setBottom(hostView.getBottom());
 				} else {
 					setTop(hostView.getTop());
-					setLeft(x + hostView.getWidth());
-					setRight(hostView.getRight());
+					setLeft(hostView.getLeft());
+					setRight(x);
 					setBottom(hostView.getBottom());
 				}
 			} else {
@@ -267,9 +272,38 @@ public class SlidingDrawer extends RelativeLayout implements OnTouchListener, An
 	}
 	
 	@Override
+	protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
+		adjustLayoutMargin();
+		super.onMeasure(widthMeasureSpec, heightMeasureSpec);
+	}
+	
+	@Override
 	protected void onLayout(boolean changed, int l, int t, int r, int b) {
 		super.onLayout(changed, l, t, r, b);
 		setDrawerClosed(false); // TODO:
+	}
+	
+	private void adjustLayoutMargin() {
+		ViewGroup.LayoutParams lp = getLayoutParams();
+		if(null == lp || !(lp instanceof ViewGroup.MarginLayoutParams)) {
+			return;
+		}
+		
+		ViewGroup.MarginLayoutParams mlp = (ViewGroup.MarginLayoutParams) lp;
+		if(isHorizontal()) {
+			if(ORIENTATION_RIGHT_TO_LEFT == mOrientation) {
+				mlp.rightMargin = 0;
+			} else {
+				mlp.leftMargin = 0;
+			}
+		} else {
+			if(ORIENTATION_BOTTOM_UP == mOrientation) {
+				mlp.bottomMargin = 0;
+			} else {
+				mlp.topMargin = 0;
+			}
+		}
+		setLayoutParams(mlp);
 	}
 	
 	public void trigglerDrawer(boolean animate) {
@@ -333,8 +367,8 @@ public class SlidingDrawer extends RelativeLayout implements OnTouchListener, An
 			mTransAnimator.cancel();
 		}
 		mTransAnimator = buildTransAnimator(position);
-		mTransAnimator.setInterpolator(new OvershootInterpolator(8));
-		mTransAnimator.setDuration(300);
+		mTransAnimator.setInterpolator(new OvershootInterpolator());
+		mTransAnimator.setDuration(300); // TODO:
 		mTransAnimator.start();
 	}
 	
@@ -379,6 +413,8 @@ public class SlidingDrawer extends RelativeLayout implements OnTouchListener, An
 	}
 	
 	protected void setTransPosition(float position) {
+		position = adjustTransPos1pxErr(position);
+		
 		if(isHorizontal()) {
 			ViewHelper.setTranslationX(this, position);
 		} else {
@@ -389,13 +425,24 @@ public class SlidingDrawer extends RelativeLayout implements OnTouchListener, An
 		}
 	}
 	
+	private float adjustTransPos1pxErr(float position) {
+		return (int) position;
+//		final float lastPos = getTransPosition();
+//		final float diff = position - lastPos;
+//		if(diff < 0) {
+//			return (int) (position - 0.5f);
+//		} else {
+//			return (int) position;
+//		}
+	}
+	
 	private void onDrawerScroll(float value) {
 		setTransPosition(value - mBaseAxisValue + mBaseTransPosition);
 	}
 	
 	private void onDrawerScrollEnded(float value) {
 		float deltaDistance = Math.abs(value - mBaseAxisValue);
-		boolean willBounceBack = shouldBounceBack(deltaDistance);
+		boolean willBounceBack = shouldBounceBack((int) deltaDistance);
 		if(mExpanded) {
 			if(willBounceBack) {
 				setsetDrawerOpen(true);
@@ -411,12 +458,12 @@ public class SlidingDrawer extends RelativeLayout implements OnTouchListener, An
 		}
 	}
 	
-	protected boolean shouldBounceBack(float deltaDistance) {
+	protected boolean shouldBounceBack(int deltaDistance) {
 		return deltaDistance < ((isHorizontal() ? getWidth() : getHeight()) / 4);
 	}
 	
 	private float getMotionAxisValue(MotionEvent event) {
-		return (isHorizontal() ? event.getRawX() : event.getRawY());
+		return (int) (isHorizontal() ? event.getRawX() : event.getRawY());
 	}
 
 	@Override
